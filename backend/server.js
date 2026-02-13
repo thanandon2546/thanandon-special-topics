@@ -1,73 +1,44 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const Task = require('./models/Task');
 require('dotenv').config();
 
-const Task = require('./models/Task');
-
 const app = express();
-const PORT = process.env.PORT || 5000;
-
-// Middleware
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('MongoDB connection error:', err));
+// เชื่อมต่อ MongoDB
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("Connected to MongoDB"))
+    .catch(err => console.log(err));
 
-// Routes
-
-// GET: Fetch all tasks
-app.get('/api/tasks', async (req, res) => {
-    try {
-        const tasks = await Task.find().sort({ createdAt: -1 });
-        res.json(tasks);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+// 1. GET: ดึงรายการงานทั้งหมด
+app.get('/tasks', async (req, res) => {
+    const tasks = await Task.find().sort({ createdAt: -1 });
+    res.json(tasks);
 });
 
-// POST: Add a new task
-app.post('/api/tasks', async (req, res) => {
-    const task = new Task({
-        text: req.body.text
-    });
-
-    try {
-        const newTask = await task.save();
-        res.status(201).json(newTask);
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
+// 2. POST: เพิ่มงานใหม่
+app.post('/tasks', async (req, res) => {
+    const newTask = new Task({ text: req.body.text });
+    const savedTask = await newTask.save();
+    res.json(savedTask);
 });
 
-// PUT: Toggle task status (Mark as Done / Undone)
-app.put('/api/tasks/:id', async (req, res) => {
-    try {
-        const task = await Task.findById(req.params.id);
-        if (!task) return res.status(404).json({ message: 'Task not found' });
-
-        task.completed = !task.completed;
-        const updatedTask = await task.save();
-        res.json(updatedTask);
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
+// 3. PUT: Toggle Status (สลับสถานะ ขีดฆ่า/ไม่ขีดฆ่า)
+app.put('/tasks/:id', async (req, res) => {
+    const task = await Task.findById(req.params.id);
+    task.completed = !task.completed; // สลับค่า true/false
+    await task.save();
+    res.json(task);
 });
 
-// DELETE: Remove a task
-app.delete('/api/tasks/:id', async (req, res) => {
-    try {
-        const result = await Task.findByIdAndDelete(req.params.id);
-        if (!result) return res.status(404).json({ message: 'Task not found' });
-        res.json({ message: 'Task deleted' });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+// 4. DELETE: ลบงาน
+app.delete('/tasks/:id', async (req, res) => {
+    await Task.findByIdAndDelete(req.params.id);
+    res.json({ message: "Task deleted successfully" });
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
