@@ -32,7 +32,7 @@ app.get('/api/tasks', async (req, res) => {
 // POST: Add a new task
 app.post('/api/tasks', async (req, res) => {
     const task = new Task({
-        title: req.body.title
+        text: req.body.text
     });
 
     try {

@@ -6,7 +6,7 @@ const API_URL = 'http://localhost:5000/api/tasks';
 
 function App() {
   const [tasks, setTasks] = useState([]);
-  const [title, setTitle] = useState('');
+  const [text, setText] = useState('');
 
   useEffect(() => {
     fetchTasks();
@@ -23,12 +23,12 @@ function App() {
 
   const addTask = async (e) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!text.trim()) return;
 
     try {
-      const response = await axios.post(API_URL, { title });
+      const response = await axios.post(API_URL, { text });
       setTasks([response.data, ...tasks]);
-      setTitle('');
+      setText('');
     } catch (err) {
       console.error('Error adding task:', err);
     }
@@ -60,8 +60,8 @@ function App() {
         <input
           type="text"
           placeholder="What needs to be done?"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
         />
         <button type="submit" className="add-btn">Add</button>
       </form>
@@ -71,7 +71,7 @@ function App() {
           <li key={task._id} className="task-item">
             <div className="task-content" onClick={() => toggleTask(task._id)}>
               <span className={`task-title ${task.completed ? 'completed' : ''}`}>
-                {task.title}
+                {task.text}
               </span>
             </div>
             <button className="delete-btn" onClick={() => deleteTask(task._id)}>
