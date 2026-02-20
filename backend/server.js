@@ -12,9 +12,16 @@ app.use(cors());           // อนุญาตให้ Frontend ติดต�
 app.use(express.json());   // *** ต้องอยู่ก่อน Routes เพื่อให้อ่าน Body (JSON) ได้ ***
 
 // --- [3. เชื่อมต่อ MongoDB] ---
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("✅ MongoDB Connected..."))
-    .catch(err => console.error("❌ MongoDB Connection Error:", err));
+const mongoURI = process.env.MONGO_URI;
+
+if (!mongoURI) {
+    console.error("❌ Error: MONGO_URI is not defined in environment variables.");
+    console.error("👉 Please add MONGO_URI to your Environment Variables on Render.com dashboard.");
+} else {
+    mongoose.connect(mongoURI)
+        .then(() => console.log("✅ MongoDB Connected..."))
+        .catch(err => console.error("❌ MongoDB Connection Error:", err));
+}
 
 // --- [4. API Endpoints] ---
 
