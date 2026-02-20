@@ -28,10 +28,22 @@ app.post('/tasks', async (req, res) => {
 
 // 3. PUT: Toggle Status (สลับสถานะ ขีดฆ่า/ไม่ขีดฆ่า)
 app.put('/tasks/:id', async (req, res) => {
-    const task = await Task.findById(req.params.id);
-    task.completed = !task.completed; // สลับค่า true/false
-    await task.save();
-    res.json(task);
+    try {
+        const task = await Task.findById(req.params.id);
+        if (!task) return res.status(404).json({ message: "Task not found" });
+
+        const newStatus = !task.completed;
+        task.completed = newStatus;
+
+        // 🔥 อัปเดตฟิลด์อื่นให้ตรงกันเพื่อป้องกัน Logic เก่าขัดขวาง
+        task.set('status', newStatus ? 'done' : 'pending');
+        task.set('done', newStatus);
+
+        await task.save();
+        res.json(task);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // 4. DELETE: ลบงาน
