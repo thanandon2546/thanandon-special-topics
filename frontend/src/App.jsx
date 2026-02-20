@@ -9,9 +9,12 @@ function App() {
   const [text, setText] = useState('');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     fetchTasks();
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
   const fetchTasks = async () => {
@@ -77,10 +80,28 @@ function App() {
   const completedCount = tasks.filter(checkCompleted).length;
   const progressPercent = tasks.length > 0 ? (completedCount / tasks.length) * 100 : 0;
 
+  // Formatting utilities
+  const formatTaskTime = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const timeString = currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const dateString = currentTime.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
   return (
     <div className="container">
-      <h1>Task Master</h1>
-      <p className="subtitle">จัดระเบียบงานของคุณอย่างมืออาชีพ</p>
+      <div className="header">
+        <div className="brand-section">
+          <h1>Task Master</h1>
+          <p className="subtitle">จัดระเบียบงานของคุณอย่างมืออาชีพ</p>
+        </div>
+        <div className="clock-section">
+          <div className="clock-time">{timeString}</div>
+          <div className="clock-date">{dateString}</div>
+        </div>
+      </div>
 
       {tasks.length > 0 && (
         <div className="progress-container">
@@ -143,9 +164,14 @@ function App() {
                     </svg>
                   )}
                 </div>
-                <span className={`task-title ${isCompleted ? 'completed' : ''}`}>
-                  {task.text || task.title || 'ไม่มีหัวข้อ'}
-                </span>
+                <div className="task-details">
+                  <span className={`task-title ${isCompleted ? 'completed' : ''}`}>
+                    {task.text || task.title || 'ไม่มีหัวข้อ'}
+                  </span>
+                  <span className="task-time">
+                    {formatTaskTime(task.createdAt)}
+                  </span>
+                </div>
               </div>
               <button className="delete-btn" onClick={() => deleteTask(task._id)}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -158,8 +184,9 @@ function App() {
       </div>
 
       {filteredTasks.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '3rem 0' }}>
-          <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>
+        <div className="empty-state">
+          <div className="empty-icon">📝</div>
+          <p>
             {tasks.length === 0 ? 'ยังไม่มีรายการงาน เริ่มต้นด้วยการเพิ่มงานใหม่!' : 'ไม่พบรายการที่ตรงตามเงื่อนไข'}
           </p>
         </div>
